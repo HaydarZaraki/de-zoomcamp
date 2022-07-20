@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+#Exclude only folders inside Docker_Sql folder
+Docker_Sql/
+
 # Distribution / packaging
 .Python
 build/
