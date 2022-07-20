@@ -8,6 +8,7 @@ __pycache__/
 
 #Exclude only folders inside Docker_Sql folder
 Docker_Sql/
+Docker_Sqlpostgres_ny_taxi_data/
 
 # Distribution / packaging
 .Python
