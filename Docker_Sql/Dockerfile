@@ -5,7 +5,7 @@ FROM python:3.9
 RUN pip install pandas
 
 #Specify the Working Directory when building and running the container image
-# Equivilant to $cd app
+# Equivalant to $cd app
 WORKDIR /app
 
 #Copy the file pipeline.py from local to docker image at /app directory
