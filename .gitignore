@@ -7,8 +7,8 @@ __pycache__/
 *.so
 
 #Exclude only folders inside Docker_Sql folder
-Docker_Sql/postgres_ny_taxi_data/
-Docker_Sql/*.parquet
+Docker_Sql/ny_taxi_postgres_data
+*.parquet
 
 # Distribution / packaging
 .Python
