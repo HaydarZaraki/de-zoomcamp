@@ -19,7 +19,6 @@ def main(params):
     engine.connect()
 
     df = pd.read_parquet(file_name, engine='auto')
-
     pd.io.sql.get_schema(df.reset_index(), name=table_name, con=engine)
 
     df.to_sql(name=table_name, con=engine, chunksize=100000, if_exists='replace')
