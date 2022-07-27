@@ -8,6 +8,8 @@ __pycache__/
 
 #Exclude only folders inside Docker_Sql folder
 Docker_Sql/ny_taxi_postgres_data
+Docker_Sql/data_pgadmin
+
 *.parquet
 
 # Distribution / packaging
