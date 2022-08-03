@@ -11,7 +11,8 @@ def main(params):
     db = params.db
     port = params.port
     table_name = params.table_name
-    url = params.url
+    trip_url = params.trip_url
+    lookup_url = params.lookup_url
     file_name = 'output.parquet'
     os.system(f'wget -O output.parquet {url}')
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
@@ -32,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--password', help='password of postgres')
     parser.add_argument('--db', help='db of postgres')
     parser.add_argument('--table_name', help='table name')
-    parser.add_argument('--url', help='URL of CSV file')
+    parser.add_argument('--trip_url', help='URL of trips data file')
+    parser.add_argument('--lookup_url', help='URL of lookup zones data file')
     args = parser.parse_args()
     main(args)
