@@ -8,7 +8,7 @@ __pycache__/
 #Terraform files
 .terraform
 .hcl
-.terraform.tfstate
+.tfstate
 .terraform.tfstate.backup
 .terraform.tfvars
 .terraform.tfstate.backup.json
