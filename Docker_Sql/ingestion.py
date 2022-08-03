@@ -13,18 +13,25 @@ def main(params):
     table_name = params.table_name
     trip_url = params.trip_url
     lookup_url = params.lookup_url
-    file_name = 'output.parquet'
-    os.system(f'wget -O output.parquet {url}')
+    data_file_name = 'output.parquet'
+    lookup_file_name = 'lookup.csv'
+    os.system(f'wget -O output.parquet {trip_url}')
+    os.system(f'wget -O lookup.csv {lookup_url}')
     engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db}')
 
     engine.connect()
 
-    df = pd.read_parquet(file_name, engine='auto')
+    df = pd.read_parquet(data_file_name, engine='auto')
     print(pd.io.sql.get_schema(df.reset_index(), name=table_name, con=engine))
 
     df.to_sql(name=table_name, con=engine, chunksize=100000, if_exists='replace')
     print(df.head())
 
+    df_lookup = pd.read_csv(lookup_file_name)
+    df_lookup.to_sql(name='lookup_zones', con=engine, chunksize=100000, if_exists='replace')
+    print(df_lookup.head())
+
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Ingestion Parameters')
     parser.add_argument('--user', help='user of postgres')
