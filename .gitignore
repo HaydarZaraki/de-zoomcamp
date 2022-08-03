@@ -13,6 +13,8 @@ __pycache__/
 .terraform.tfvars
 .terraform.tfstate.backup.json
 Terraform/dtc-de-358219-f90fb5e336ec.json
+*.hcl
+*.tfstate
 #Exclude only folders inside Docker_Sql folder
 Docker_Sql/ny_taxi_postgres_data
 Docker_Sql/data_pgadmin
