@@ -5,7 +5,14 @@ __pycache__/
 
 # C extensions
 *.so
-
+#Terraform files
+.terraform
+.hcl
+.terraform.tfstate
+.terraform.tfstate.backup
+.terraform.tfvars
+.terraform.tfstate.backup.json
+Terraform/dtc-de-358219-f90fb5e336ec.json
 #Exclude only folders inside Docker_Sql folder
 Docker_Sql/ny_taxi_postgres_data
 Docker_Sql/data_pgadmin
