@@ -15,6 +15,7 @@ __pycache__/
 Terraform/dtc-de-358219-f90fb5e336ec.json
 *.hcl
 *.tfstate
+*.csv
 #Exclude only folders inside Docker_Sql folder
 Docker_Sql/ny_taxi_postgres_data
 Docker_Sql/data_pgadmin
