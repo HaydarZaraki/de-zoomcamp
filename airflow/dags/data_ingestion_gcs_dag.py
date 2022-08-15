@@ -22,8 +22,9 @@ import pyarrow.parquet as pq
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 BUCKET = os.environ.get("GCP_GCS_BUCKET")
 
-dataset_file = "yellow_tripdata_2021-01.csv"
-dataset_url = f"https://s3.amazonaws.com/nyc-tlc/trip+data/{dataset_file}"
+dataset_file = "yellow_tripdata_2021-01.parquet"
+# dataset_url = f"https://s3.amazonaws.com/nyc-tlc/trip+data/{dataset_file}"
+dataset_url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{dataset_file}"
 path_to_local_home = os.environ.get("AIRFLOW_HOME", "/opt/airflow/")
 parquet_file = dataset_file.replace('.csv', '.parquet')
 BIGQUERY_DATASET = os.environ.get("BIGQUERY_DATASET", "trips_data_all")
@@ -80,13 +81,13 @@ with DAG(
         bash_command=f"curl -sS {dataset_url} > {path_to_local_home}/{dataset_file}"
     )
 
-    format_to_parquet_task = PythonOperator(
-        task_id="format_to_parquet_task",
-        python_callable=format_to_parquet,
-        op_kwargs={
-            "src_file": f"{path_to_local_home}/{dataset_file}",
-        },
-    )
+    # format_to_parquet_task = PythonOperator(
+    #     task_id="format_to_parquet_task",
+    #     python_callable=format_to_parquet,
+    #     op_kwargs={
+    #         "src_file": f"{path_to_local_home}/{dataset_file}",
+    #     },
+    # )
 
     # TODO: Homework - research and try XCOM to communicate output values between 2 tasks/operators
     local_to_gcs_task = PythonOperator(
@@ -114,4 +115,4 @@ with DAG(
         },
     )
 
-    download_dataset_task >> format_to_parquet_task >> local_to_gcs_task >> bigquery_external_table_task
+    download_dataset_task >> local_to_gcs_task >> bigquery_external_table_task
