@@ -11,12 +11,19 @@ services:
     ports:
       - "5432:5432"
     hostname: 'pgdatabase'
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=root
-    volumes:
-      - ./data_pgadmin:/var/lib/pgadmin
-    ports:
-      - "8080:80"
+    networks:
+      - airflow
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=root
+  #   volumes:
+  #     - ./data_pgadmin:/var/lib/pgadmin
+  #   ports:
+  #     - "8080:80"
+
+networks:
+  airflow:
+    external:
+      name: airflow_default
