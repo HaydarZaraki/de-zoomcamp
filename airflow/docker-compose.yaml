@@ -62,11 +62,11 @@ x-airflow-common:
     AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT: 'google-cloud-platform://?extra__google_cloud_platform__key_path=/.google/credentials/google_credentials.json'
     GCP_PROJECT_ID: 'dtc-de-358219'
     GCP_GCS_BUCKET: 'dtc_data_lake_dtc-de-358219'
-    PG_USERNAME : ${PG_USERNAME}
-    PG_PASSWORD : ${PG_PASSWORD}
-    PG_HOST : ${PG_HOST}
-    PG_PORT : ${PG_PORT}
-    PG_DATABASE : ${PG_DATABASE}
+    PG_USERNAME : "${PG_USERNAME}"
+    PG_PASSWORD : "${PG_PASSWORD}"
+    PG_HOST : "${PG_HOST}"
+    PG_PORT : "${PG_PORT}"
+    PG_DATABASE : "${PG_DATABASE}"
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
   volumes:
     - ./dags_new:/opt/airflow/dags
