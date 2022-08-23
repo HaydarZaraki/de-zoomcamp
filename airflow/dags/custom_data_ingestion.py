@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import datetime
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -56,14 +57,13 @@ default_args = {
 }
 
 with DAG(
-    'ingest_taxi_data',
     dag_id="data_ingestion_gcs_dag_v02",
     schedule_interval="@monthly",
     default_args=default_args,
-    catchup=True,
+    catchup=False,
     start_date=datetime(2019, 1, 1),
     end_date=datetime(2020,12,31),
-    max_active_runs=1,
+    max_active_runs=3,
     tags=['dtc-de'],
 ) as dag:
 
@@ -89,16 +89,15 @@ fhv_file = "fhv_tripdata_{{execution_date.strftime(\'%Y-%m\')}}.parquet"
 fhv_url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{fhv_file}"
 
 with DAG(
-    'ingest_fhv_data',
     dag_id="data_ingestion_gcs_fhv",
     schedule_interval="@monthly",
     default_args=default_args,
     catchup=True,
     start_date=datetime(2019, 1, 1),
     end_date=datetime(2020,12,31),
-    max_active_runs=1,
+    max_active_runs=3,
     tags=['dtc-de'],
-) as dag:
+) as dag_1:
 
     download_fhv_dataset_task = BashOperator(
         task_id="download_fhv_dataset_task",
@@ -127,28 +126,26 @@ def format_to_parquet(src_file):
 
 lookup_url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv"
 lookup_file = "taxi_zone_lookup.csv"
+parquet_file = lookup_file.replace('.csv', '.parquet')
 with DAG(
-    'ingest_lookup_data',
     dag_id="data_ingestion_gcs_lookup",
-    schedule_interval="@monthly",
+    schedule_interval="@once",
     default_args=default_args,
-    catchup=False,
-    start_date=datetime(2022, 8, 1),
-    end_date=datetime(2022,8,1),
-    max_active_runs=1,
+    start_date=days_ago(1),
+    max_active_runs=3,
     tags=['dtc-de'],
-) as dag:
+) as dag_2:
 
     download_lookup_dataset_task = BashOperator(
         task_id="download_lookup_dataset_task",
-        bash_command=f"curl -sSLf {lookup_url} > {path_to_local_home}/{lookup_file}"
+        bash_command=f"curl -sSLf {lookup_url} > {path_to_local_home}/{parquet_file}"
     )
 
     format_to_parquet_task = PythonOperator(
         task_id="format_to_parquet_task",
         python_callable=format_to_parquet,
         op_kwargs={
-            "src_file": f"{path_to_local_home}/{lookup_file}",
+            "src_file": f"{path_to_local_home}/{parquet_file}",
         },
     )
 
@@ -157,8 +154,8 @@ with DAG(
         python_callable=upload_to_gcs,
         op_kwargs={
             "bucket": BUCKET,
-            "object_name": f"raw/{lookup_file}",
-            "local_file": f"{path_to_local_home}/{lookup_file}",
+            "object_name": f"raw/{parquet_file}",
+            "local_file": f"{path_to_local_home}/{parquet_file}",
         },
     )
 
