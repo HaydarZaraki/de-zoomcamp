@@ -26,23 +26,9 @@ BUCKET = os.environ.get("GCP_GCS_BUCKET")
 dataset_file = "yellow_tripdata_{{execution_date.strftime(\'%Y-%m\')}}.parquet"
 dataset_url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{dataset_file}"
 path_to_local_home = os.environ.get("AIRFLOW_HOME", "/opt/airflow/")
+yellow_gcp_storage_template = "raw/yellow_taxi_data/{{execution_date.strftime(\'%Y\')}}/yellow_tripdata_{{execution_date.strftime(\'%Y-%m\')}}.parquet"
 
-
-# NOTE: takes 20 mins, at an upload speed of 800kbps. Faster if your internet has a better upload speed
 def upload_to_gcs(bucket, object_name, local_file):
-    """
-    Ref: https://cloud.google.com/storage/docs/uploading-objects#storage-upload-object-python
-    :param bucket: GCS bucket name
-    :param object_name: target path & file-name
-    :param local_file: source path & file-name
-    :return:
-    """
-    # WORKAROUND to prevent timeout for files > 6 MB on 800 kbps upload speed.
-    # (Ref: https://github.com/googleapis/python-storage/issues/74)
-    storage.blob._MAX_MULTIPART_SIZE = 5 * 1024 * 1024  # 5 MB
-    storage.blob._DEFAULT_CHUNKSIZE = 5 * 1024 * 1024  # 5 MB
-    # End of Workaround
-
     client = storage.Client()
     bucket = client.bucket(bucket)
 
@@ -60,9 +46,9 @@ with DAG(
     dag_id="data_ingestion_gcs_dag_v02",
     schedule_interval="@monthly",
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     start_date=datetime(2019, 1, 1),
-    end_date=datetime(2020,12,31),
+    end_date=datetime(2021,1,1),
     max_active_runs=3,
     tags=['dtc-de'],
 ) as dag:
@@ -78,7 +64,7 @@ with DAG(
         python_callable=upload_to_gcs,
         op_kwargs={
             "bucket": BUCKET,
-            "object_name": f"raw/{dataset_file}",
+            "object_name": yellow_gcp_storage_template,
             "local_file": f"{path_to_local_home}/{dataset_file}",
         },
     )
@@ -87,6 +73,7 @@ with DAG(
 
 fhv_file = "fhv_tripdata_{{execution_date.strftime(\'%Y-%m\')}}.parquet"
 fhv_url = f"https://d37ci6vzurychx.cloudfront.net/trip-data/{fhv_file}"
+fhv_gcp_storage_template = "raw/fhv_taxi_data/{{execution_date.strftime(\'%Y\')}}/fhv_taxi_{{execution_date.strftime(\'%Y-%m\')}}.parquet"
 
 with DAG(
     dag_id="data_ingestion_gcs_fhv",
@@ -94,7 +81,7 @@ with DAG(
     default_args=default_args,
     catchup=True,
     start_date=datetime(2019, 1, 1),
-    end_date=datetime(2020,12,31),
+    end_date=datetime(2021, 1, 1),
     max_active_runs=3,
     tags=['dtc-de'],
 ) as dag_1:
@@ -110,23 +97,25 @@ with DAG(
         python_callable=upload_to_gcs,
         op_kwargs={
             "bucket": BUCKET,
-            "object_name": f"raw/{fhv_file}",
+            "object_name": fhv_gcp_storage_template,
             "local_file": f"{path_to_local_home}/{fhv_file}",
         },
     )
 
     download_fhv_dataset_task >> local_fhv_to_gcs_task
 
-def format_to_parquet(src_file):
+def format_to_parquet(src_file,dest_file):
     if not src_file.endswith('.csv'):
         logging.error("Can only accept source files in CSV format, for the moment")
         return
     table = pv.read_csv(src_file)
-    pq.write_table(table, src_file.replace('.csv', '.parquet'))
+    pq.write_table(table, dest_file)
 
 lookup_url = "https://d37ci6vzurychx.cloudfront.net/misc/taxi+_zone_lookup.csv"
 lookup_file = "taxi_zone_lookup.csv"
 parquet_file = lookup_file.replace('.csv', '.parquet')
+zones_gcp_storage_template = f"raw/taxi_zones/{parquet_file}"
+
 with DAG(
     dag_id="data_ingestion_gcs_lookup",
     schedule_interval="@once",
@@ -145,7 +134,8 @@ with DAG(
         task_id="format_to_parquet_task",
         python_callable=format_to_parquet,
         op_kwargs={
-            "src_file": f"{path_to_local_home}/{parquet_file}",
+            "src_file": f"{path_to_local_home}/{lookup_file}",
+            "dest_file": f"{path_to_local_home}/{parquet_file}",
         },
     )
 
@@ -154,7 +144,7 @@ with DAG(
         python_callable=upload_to_gcs,
         op_kwargs={
             "bucket": BUCKET,
-            "object_name": f"raw/{parquet_file}",
+            "object_name": zones_gcp_storage_template,
             "local_file": f"{path_to_local_home}/{parquet_file}",
         },
     )
